@@ -1,0 +1,45 @@
+body {
+  margin: 0;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  background: #fef6e4;
+}
+
+h1, h2 {
+  font-size: 28px;
+}
+
+button {
+  width: 80%;
+  padding: 25px;
+  margin: 15px;
+  font-size: 26px;
+  border-radius: 20px;
+  border: none;
+  background: #ff8fab;
+  color: white;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  padding: 20px;
+}
+
+.item {
+  font-size: 70px;
+}
+
+.color {
+  height: 120px;
+  border-radius: 20px;
+}
+
+.rojo { background: red; }
+.azul { background: blue; }
+.amarillo { background: yellow; }
+.verde { background: green; }
+.naranja { background: orange; }
+.morado { background: purple; }
+.negro { background: black; }
