@@ -10,24 +10,14 @@
 <h2>🔺 Figuras</h2>
 
 <div class="grid">
-  <div class="item" onclick="play('circulo')">⭕</div>
-  <div class="item" onclick="play('cuadrado')">⬛</div>
-  <div class="item" onclick="play('triangulo')">🔺</div>
-  <div class="item" onclick="play('estrella')">⭐</div>
-  <div class="item" onclick="play('corazon')">❤️</div>
-  <div class="item" onclick="play('ovalo')">⬭</div>
+  <div class="item" onclick="speak('Círculo')">⭕</div>
+  <div class="item" onclick="speak('Cuadrado')">⬛</div>
+  <div class="item" onclick="speak('Triángulo')">🔺</div>
+  <div class="item" onclick="speak('Estrella')">⭐</div>
+  <div class="item" onclick="speak('Corazón')">❤️</div>
+  <div class="item" onclick="speak('Óvalo')">⬭</div>
 </div>
 
-<script>
-let audio = new Audio();
-
-function play(name) {
-  audio.pause();
-  audio.currentTime = 0;
-  audio.src = "sounds/" + name + ".mp3";
-  audio.play().catch(() => {});
-}
-</script>
-
+<script src="voice.js"></script>
 </body>
 </html>
