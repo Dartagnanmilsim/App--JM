@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>🔺 Figuras</h2>
+
+<div class="grid">
+  <div class="item" onclick="play('circulo')">⭕</div>
+  <div class="item" onclick="play('cuadrado')">⬛</div>
+  <div class="item" onclick="play('triangulo')">🔺</div>
+  <div class="item" onclick="play('estrella')">⭐</div>
+  <div class="item" onclick="play('corazon')">❤️</div>
+  <div class="item" onclick="play('ovalo')">⬭</div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+function play(name) {
+  audio.src = "sounds/" + name + ".mp3";
+  audio.play();
+}
+</script>
+
+</body>
+</html>
