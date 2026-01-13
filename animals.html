@@ -1,0 +1,22 @@
+<h2>🐶 Animales</h2>
+
+<div class="item" onclick="play('perro')">🐶</div>
+<div class="item" onclick="play('gato')">🐱</div>
+<div class="item" onclick="play('vaca')">🐮</div>
+<div class="item" onclick="play('cerdo')">🐷</div>
+<div class="item" onclick="play('gallina')">🐔</div>
+<div class="item" onclick="play('caballo')">🐴</div>
+<div class="item" onclick="play('oveja')">🐑</div>
+<div class="item" onclick="play('elefante')">🐘</div>
+<div class="item" onclick="play('leon')">🦁</div>
+<div class="item" onclick="play('rana')">🐸</div>
+
+<audio id="audio"></audio>
+
+<script>
+function play(name) {
+  const audio = document.getElementById("audio");
+  audio.src = `sounds/${name}.mp3`;
+  audio.play();
+}
+</script>
