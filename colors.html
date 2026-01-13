@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>🎨 Colores</h2>
+
+<div class="grid">
+  <div class="color rojo" onclick="playColor('rojo')"></div>
+  <div class="color azul" onclick="playColor('azul')"></div>
+  <div class="color amarillo" onclick="playColor('amarillo')"></div>
+  <div class="color verde" onclick="playColor('verde')"></div>
+  <div class="color naranja" onclick="playColor('naranja')"></div>
+  <div class="color morado" onclick="playColor('morado')"></div>
+  <div class="color negro" onclick="playColor('negro')"></div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+function playColor(color) {
+  document.body.style.background = color;
+  audio.src = "sounds/" + color + ".mp3";
+  audio.play();
+}
+</script>
+
+</body>
+</html>
