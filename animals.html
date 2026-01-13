@@ -10,28 +10,18 @@
 <h2>🐶 Animales</h2>
 
 <div class="grid">
-  <div class="item" onclick="play('perro')">🐶</div>
-  <div class="item" onclick="play('gato')">🐱</div>
-  <div class="item" onclick="play('vaca')">🐮</div>
-  <div class="item" onclick="play('cerdo')">🐷</div>
-  <div class="item" onclick="play('gallina')">🐔</div>
-  <div class="item" onclick="play('caballo')">🐴</div>
-  <div class="item" onclick="play('oveja')">🐑</div>
-  <div class="item" onclick="play('elefante')">🐘</div>
-  <div class="item" onclick="play('leon')">🦁</div>
-  <div class="item" onclick="play('rana')">🐸</div>
+  <div class="item" onclick="speak('Perro, guau guau')">🐶</div>
+  <div class="item" onclick="speak('Gato, miau')">🐱</div>
+  <div class="item" onclick="speak('Vaca, muu')">🐮</div>
+  <div class="item" onclick="speak('Cerdo, oink')">🐷</div>
+  <div class="item" onclick="speak('Gallina, clo clo')">🐔</div>
+  <div class="item" onclick="speak('Caballo')">🐴</div>
+  <div class="item" onclick="speak('Oveja')">🐑</div>
+  <div class="item" onclick="speak('Elefante')">🐘</div>
+  <div class="item" onclick="speak('León')">🦁</div>
+  <div class="item" onclick="speak('Rana, croac')">🐸</div>
 </div>
 
-<script>
-let audio = new Audio();
-
-function play(name) {
-  audio.pause();
-  audio.currentTime = 0;
-  audio.src = "sounds/" + name + ".mp3";
-  audio.play().catch(() => {});
-}
-</script>
-
+<script src="voice.js"></script>
 </body>
 </html>
