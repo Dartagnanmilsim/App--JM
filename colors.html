@@ -10,26 +10,15 @@
 <h2>🎨 Colores</h2>
 
 <div class="grid">
-  <div class="color rojo" onclick="playColor('rojo')"></div>
-  <div class="color azul" onclick="playColor('azul')"></div>
-  <div class="color amarillo" onclick="playColor('amarillo')"></div>
-  <div class="color verde" onclick="playColor('verde')"></div>
-  <div class="color naranja" onclick="playColor('naranja')"></div>
-  <div class="color morado" onclick="playColor('morado')"></div>
-  <div class="color negro" onclick="playColor('negro')"></div>
+  <div class="color rojo" onclick="speak('Rojo')"></div>
+  <div class="color azul" onclick="speak('Azul')"></div>
+  <div class="color amarillo" onclick="speak('Amarillo')"></div>
+  <div class="color verde" onclick="speak('Verde')"></div>
+  <div class="color naranja" onclick="speak('Naranja')"></div>
+  <div class="color morado" onclick="speak('Morado')"></div>
+  <div class="color negro" onclick="speak('Negro')"></div>
 </div>
 
-<script>
-let audio = new Audio();
-
-function playColor(color) {
-  document.body.style.background = color;
-  audio.pause();
-  audio.currentTime = 0;
-  audio.src = "sounds/" + color + ".mp3";
-  audio.play().catch(() => {});
-}
-</script>
-
+<script src="voice.js"></script>
 </body>
 </html>
