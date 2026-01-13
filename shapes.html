@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,12 +18,14 @@
   <div class="item" onclick="play('ovalo')">⬭</div>
 </div>
 
-<audio id="audio"></audio>
-
 <script>
+let audio = new Audio();
+
 function play(name) {
+  audio.pause();
+  audio.currentTime = 0;
   audio.src = "sounds/" + name + ".mp3";
-  audio.play();
+  audio.play().catch(() => {});
 }
 </script>
 
