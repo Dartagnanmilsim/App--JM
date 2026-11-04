@@ -98,7 +98,7 @@
   <div class="big">🎨</div>
   <h1>¿Dónde está el color?</h1>
   <button id="play">▶️ Jugar</button>
-  <p class="tip" id="tip">🔈 Sube el volumen y quita el modo silencio del teléfono para oír la voz.</p>
+  <p class="tip" id="tip">🔈 Sube el volumen del teléfono para oír la voz.</p>
 </div>
 
 <div class="top">
@@ -114,17 +114,44 @@
 <script>
   // Colores con nombre en español (artículo incluido para la pregunta)
   const COLORS = [
-    { name: "rojo",     hex: "#e63946" },
-    { name: "azul",     hex: "#1e6fd9" },
-    { name: "amarillo", hex: "#ffd60a" },
-    { name: "verde",    hex: "#2a9d3f" },
-    { name: "naranja",  hex: "#ff8c1a" },
-    { name: "morado",   hex: "#8e44ad" },
-    { name: "rosa",     hex: "#ff7eb6" },
-    { name: "negro",    hex: "#222222" },
-    { name: "blanco",   hex: "#ffffff" },
-    { name: "marrón",   hex: "#8b5a2b" },
+    { name: "rojo", key: "rojo",     hex: "#e63946" },
+    { name: "azul", key: "azul",     hex: "#1e6fd9" },
+    { name: "amarillo", key: "amarillo", hex: "#ffd60a" },
+    { name: "verde", key: "verde",    hex: "#2a9d3f" },
+    { name: "naranja", key: "naranja",  hex: "#ff8c1a" },
+    { name: "morado", key: "morado",   hex: "#8e44ad" },
+    { name: "rosa", key: "rosa",     hex: "#ff7eb6" },
+    { name: "negro", key: "negro",    hex: "#222222" },
+    { name: "blanco", key: "blanco",   hex: "#ffffff" },
+    { name: "marrón",   key: "marron",   hex: "#8b5a2b" },
   ];
+  // ---- Audio grabado (funciona aunque el navegador no tenga voz) ----
+  // Los archivos están en audio/. Si window.AUDIO_DATA existe, se usan esos datos incrustados.
+  const player = new Audio();
+  player.preload = "auto";
+  let queue = [];
+  let queueId = 0;
+
+  function clipSrc(key) {
+    return (window.AUDIO_DATA && window.AUDIO_DATA[key]) || ("audio/" + key + ".mp3");
+  }
+
+  // Reproduce varios clips seguidos; si el audio falla, usa la voz del navegador.
+  function say(keys, fallbackText) {
+    const id = ++queueId;
+    queue = keys.slice();
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+    const next = () => {
+      if (id !== queueId || !queue.length) return;
+      player.src = clipSrc(queue.shift());
+      const p = player.play();
+      if (p && p.catch) p.catch(() => { if (id === queueId) { queue = []; speak(fallbackText); } });
+    };
+    player.onended = next;
+    player.onerror = () => { if (id === queueId) { queue = []; speak(fallbackText); } };
+    next();
+  }
+
   const PRAISE = ["¡Muy bien!", "¡Bravo!", "¡Excelente!", "¡Sí, lo encontraste!", "¡Genial!"];
   const PARTY = ["🎈", "⭐", "🎉", "🌈", "💖", "✨"];
 
@@ -153,7 +180,7 @@
     const msg = "¿Dónde está el " + target.name + "?";
     question.textContent = msg;
     question.style.color = target.hex;
-    speak(msg);
+    say(["q_" + target.key], msg);
   }
 
   function newRound() {
@@ -189,7 +216,8 @@
       [...board.children].forEach(b => { if (b !== ball) b.classList.add("fade"); });
       const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
       question.textContent = praise;
-      speak(praise + " ¡" + capitalize(color.name) + "!");
+      const pi = PRAISE.indexOf(praise);
+      say(["p_" + pi, "c_" + color.key], praise + " ¡" + capitalize(color.name) + "!");
       celebrate();
       setTimeout(newRound, 2800);
     } else {
@@ -197,7 +225,8 @@
       ball.classList.remove("wiggle");
       void ball.offsetWidth; // reinicia la animación
       ball.classList.add("wiggle");
-      speak("Ese es " + color.name + ". ¿Dónde está el " + target.name + "?");
+      say(["ese_" + color.key, "q_" + target.key],
+          "Ese es " + color.name + ". ¿Dónde está el " + target.name + "?");
     }
   }
 
@@ -218,10 +247,6 @@
   document.getElementById("repeat").addEventListener("click", () => { if (target) ask(); });
 
   // El primer toque es necesario para que el navegador permita la voz
-  if (!("speechSynthesis" in window)) {
-    document.getElementById("tip").textContent = "⚠️ Este navegador no tiene voz. Prueba con Chrome o Safari.";
-  }
-
   document.getElementById("play").addEventListener("click", () => {
     document.getElementById("start").remove();
     newRound();
