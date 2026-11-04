@@ -182,6 +182,10 @@
       if (item === target) {
         busy = true;
         wins++;
+        try { // estrellas totales para mostrarlas en el inicio
+          var k = "stars_" + gameId;
+          localStorage.setItem(k, String((parseInt(localStorage.getItem(k), 10) || 0) + 1));
+        } catch (e) {}
         starsEl.textContent = "⭐".repeat(wins % 10 || 10);
         el.classList.add("win");
         Array.prototype.forEach.call(board.children, function (b) { if (b !== el) b.classList.add("fade"); });

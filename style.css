@@ -1,44 +1,179 @@
-/* Menú principal */
+/* Página de inicio */
+:root {
+  --bg: #fef6e4;
+  --ink: #2b2c34;
+  --muted: #6b6470;
+  --pink: #ff8fab;
+  --orange: #f4a261;
+  --teal: #5fb8c9;
+}
+
+* { box-sizing: border-box; }
+
 body {
   margin: 0;
-  padding: 24px 16px 40px;
-  text-align: center;
+  min-height: 100vh;
+  padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left));
   font-family: "Arial Rounded MT Bold", "Nunito", Arial, sans-serif;
-  background: #fef6e4;
-  color: #2b2c34;
+  background: var(--bg);
+  color: var(--ink);
+  text-align: center;
+  overflow-x: hidden;
   -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-h1 { font-size: 32px; margin: 8px 0 4px; }
-.sub { font-size: 20px; color: #6b6470; margin: 0 0 24px; }
+/* Fondo con globos y estrellas flotando */
+.sky { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.sky span {
+  position: absolute;
+  bottom: -60px;
+  font-size: 34px;
+  opacity: 0.35;
+  animation: float 16s linear infinite;
+}
+.sky span:nth-child(1) { left: 6%;  animation-delay: 0s; }
+.sky span:nth-child(2) { left: 22%; animation-delay: 5s;  font-size: 24px; }
+.sky span:nth-child(3) { left: 40%; animation-delay: 9s;  font-size: 44px; }
+.sky span:nth-child(4) { left: 58%; animation-delay: 2s; }
+.sky span:nth-child(5) { left: 74%; animation-delay: 11s; font-size: 28px; }
+.sky span:nth-child(6) { left: 88%; animation-delay: 7s; }
+.sky span:nth-child(7) { left: 94%; animation-delay: 13s; font-size: 40px; }
+@keyframes float {
+  from { transform: translateY(0) rotate(0); }
+  to   { transform: translateY(-115vh) rotate(25deg); }
+}
 
+header, .menu { position: relative; z-index: 1; }
+
+.mascot {
+  display: inline-block;
+  font-size: 72px;
+  line-height: 1;
+  cursor: pointer;
+  animation: bob 2.4s ease-in-out infinite;
+}
+.mascot.hello { animation: hello 0.9s ease-in-out; }
+@keyframes bob { 50% { transform: translateY(-8px); } }
+@keyframes hello {
+  20% { transform: rotate(-15deg) scale(1.15); }
+  40% { transform: rotate(15deg) scale(1.15); }
+  60% { transform: rotate(-10deg) scale(1.1); }
+  80% { transform: rotate(10deg); }
+}
+
+h1 { font-size: 34px; margin: 6px 0 4px; text-wrap: balance; }
+.sub { font-size: 20px; color: var(--muted); margin: 0 0 26px; }
+
+/* Módulos */
 .menu {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 22px;
+  max-width: 460px;
+  margin: 0 auto;
+}
+@media (min-width: 900px) {
+  .menu { grid-template-columns: repeat(3, 1fr); max-width: 1100px; }
+  .module { flex-direction: column; text-align: center; }
+  .module .info { align-items: center; }
+  .module .meta { justify-content: center; }
 }
 
-.game {
+.module {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 30px;
+  color: white;
+  text-decoration: none;
+  text-align: left;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.16);
+  transition: transform 0.15s, box-shadow 0.15s;
+  animation: pop-in 0.5s both;
+}
+.module:nth-child(2) { animation-delay: 0.1s; }
+.module:nth-child(3) { animation-delay: 0.2s; }
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(24px) scale(0.9); }
+  to   { opacity: 1; transform: none; }
+}
+.module:hover { transform: translateY(-4px); }
+.module:active { transform: translateY(6px); box-shadow: 0 4px 0 rgba(0, 0, 0, 0.16); }
+.module:focus-visible { outline: 5px solid var(--ink); outline-offset: 4px; }
+.module.tapped { animation: tap 0.6s ease-out forwards; }
+@keyframes tap {
+  30% { transform: scale(1.06) rotate(-2deg); }
+  60% { transform: scale(0.97) rotate(1deg); }
+  100% { transform: scale(1.03); }
+}
+
+.colores  { background: var(--pink); }
+.animales { background: var(--orange); }
+.figuras  { background: var(--teal); }
+
+.icon {
+  flex: none;
+  width: 104px;
+  height: 104px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  width: 100%;
-  max-width: 420px;
-  box-sizing: border-box;
-  padding: 22px 16px;
-  font-size: 32px;
-  font-weight: bold;
-  color: white;
-  text-decoration: none;
-  border-radius: 28px;
-  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.15);
-  transition: transform 0.15s;
+  background: white;
+  border-radius: 26px;
+  font-size: 66px;
+  line-height: 1;
+  animation: wiggle-icon 3s ease-in-out infinite;
 }
-.game:active { transform: scale(0.95); }
-.game span { font-size: 54px; line-height: 1; }
+.animales .icon { animation-delay: 0.4s; }
+.figuras .icon  { animation-delay: 0.8s; }
+.icon svg { width: 70%; height: 70%; }
+@keyframes wiggle-icon {
+  0%, 80%, 100% { transform: rotate(0); }
+  85% { transform: rotate(-8deg); }
+  90% { transform: rotate(8deg); }
+  95% { transform: rotate(-4deg); }
+}
 
-.colores  { background: #ff8fab; }
-.animales { background: #f4a261; }
-.figuras  { background: #6cc0d0; }
+.info { display: flex; flex-direction: column; gap: 10px; min-width: 0; flex: 1; }
+.info h2 { margin: 0; font-size: 32px; text-shadow: 0 2px 0 rgba(0, 0, 0, 0.12); }
+
+.preview { display: flex; gap: 8px; align-items: center; }
+.preview i {
+  width: 30px; height: 30px; border-radius: 50%;
+  border: 3px solid white;
+  display: inline-block;
+}
+.preview.emojis b {
+  font-weight: normal;
+  font-size: 26px;
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+}
+.preview.shapes svg {
+  width: 38px; height: 38px; padding: 5px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+}
+
+.meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.go {
+  display: inline-block;
+  padding: 6px 16px;
+  background: white;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.colores .go  { color: #d94f75; }
+.animales .go { color: #c46a1f; }
+.figuras .go  { color: #2a7f90; }
+.stars { font-size: 18px; font-weight: bold; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sky span, .mascot, .icon, .module { animation: none !important; }
+}
