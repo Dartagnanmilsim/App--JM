@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>¿Dónde está el color?</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body { height: 100%; overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+    }
+    .top a, .top button {
+      width: auto;
+      margin: 0;
+      padding: 12px 18px;
+      font-size: 28px;
+      border-radius: 50px;
+      background: #8bd3dd;
+      color: white;
+      text-decoration: none;
+      border: none;
+    }
+    .stars { font-size: 26px; min-height: 34px; }
+
+    #question { font-size: 34px; margin: 8px 16px 0; min-height: 44px; }
+
+    #board {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      padding: 24px 16px;
+    }
+    .ball {
+      width: 38vmin;
+      height: 38vmin;
+      max-width: 220px;
+      max-height: 220px;
+      border-radius: 50%;
+      border: 6px solid white;
+      box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.3s;
+    }
+    .ball:active { transform: scale(0.92); }
+    .ball.wiggle { animation: wiggle 0.5s; }
+    .ball.win { animation: grow 0.8s forwards; }
+    .ball.fade { opacity: 0.25; }
+
+    @keyframes wiggle {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-14px); }
+      40% { transform: translateX(14px); }
+      60% { transform: translateX(-10px); }
+      80% { transform: translateX(10px); }
+    }
+    @keyframes grow {
+      50% { transform: scale(1.25) rotate(10deg); }
+      100% { transform: scale(1.15); }
+    }
+
+    #start {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #fef6e4;
+      z-index: 10;
+    }
+    #start button { width: auto; padding: 30px 60px; font-size: 44px; }
+    #start .big { font-size: 90px; margin-bottom: 10px; }
+
+    .confetti {
+      position: fixed;
+      top: -60px;
+      font-size: 44px;
+      pointer-events: none;
+      animation: fall 1.8s linear forwards;
+      z-index: 5;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="start">
+  <div class="big">🎨</div>
+  <h1>¿Dónde está el color?</h1>
+  <button id="play">▶️ Jugar</button>
+</div>
+
+<div class="top">
+  <a href="index.html" aria-label="Inicio">🏠</a>
+  <div class="stars" id="stars"></div>
+  <button id="repeat" aria-label="Repetir">🔊</button>
+</div>
+
+<h2 id="question"></h2>
+<div id="board"></div>
+
+<script src="voice.js"></script>
+<script>
+  // Colores con nombre en español (artículo incluido para la pregunta)
+  const COLORS = [
+    { name: "rojo",     hex: "#e63946" },
+    { name: "azul",     hex: "#1e6fd9" },
+    { name: "amarillo", hex: "#ffd60a" },
+    { name: "verde",    hex: "#2a9d3f" },
+    { name: "naranja",  hex: "#ff8c1a" },
+    { name: "morado",   hex: "#8e44ad" },
+    { name: "rosa",     hex: "#ff7eb6" },
+    { name: "negro",    hex: "#222222" },
+  ];
+  const PRAISE = ["¡Muy bien!", "¡Bravo!", "¡Excelente!", "¡Sí, lo encontraste!", "¡Genial!"];
+  const PARTY = ["🎈", "⭐", "🎉", "🌈", "💖", "✨"];
+
+  const board = document.getElementById("board");
+  const question = document.getElementById("question");
+  const starsEl = document.getElementById("stars");
+
+  let target = null;
+  let lastTarget = null;
+  let wins = 0;
+  let busy = false;
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // Empieza con 2 opciones; después de 5 aciertos sube a 3, y a los 12 a 4.
+  function optionCount() {
+    if (wins >= 12) return 4;
+    if (wins >= 5) return 3;
+    return 2;
+  }
+
+  function ask() {
+    const msg = "¿Dónde está el " + target.name + "?";
+    question.textContent = msg;
+    question.style.color = target.hex;
+    speak(msg);
+  }
+
+  function newRound() {
+    busy = false;
+    const pool = COLORS.filter(c => c !== lastTarget);
+    target = pool[Math.floor(Math.random() * pool.length)];
+    lastTarget = target;
+
+    const others = shuffle(COLORS.filter(c => c !== target)).slice(0, optionCount() - 1);
+    const options = shuffle([target, ...others]);
+
+    board.innerHTML = "";
+    options.forEach(color => {
+      const ball = document.createElement("div");
+      ball.className = "ball";
+      ball.style.background = color.hex;
+      ball.setAttribute("role", "button");
+      ball.setAttribute("aria-label", color.name);
+      ball.addEventListener("click", () => choose(color, ball));
+      board.appendChild(ball);
+    });
+    ask();
+  }
+
+  function choose(color, ball) {
+    if (busy) return;
+
+    if (color === target) {
+      busy = true;
+      wins++;
+      starsEl.textContent = "⭐".repeat(wins % 10 || 10);
+      ball.classList.add("win");
+      [...board.children].forEach(b => { if (b !== ball) b.classList.add("fade"); });
+      const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+      question.textContent = praise;
+      speak(praise + " ¡" + capitalize(color.name) + "!");
+      celebrate();
+      setTimeout(newRound, 2800);
+    } else {
+      // Error amable: decir qué color tocó y repetir la pregunta
+      ball.classList.remove("wiggle");
+      void ball.offsetWidth; // reinicia la animación
+      ball.classList.add("wiggle");
+      speak("Ese es " + color.name + ". ¿Dónde está el " + target.name + "?");
+    }
+  }
+
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  function celebrate() {
+    for (let i = 0; i < 14; i++) {
+      const c = document.createElement("div");
+      c.className = "confetti";
+      c.textContent = PARTY[Math.floor(Math.random() * PARTY.length)];
+      c.style.left = Math.random() * 95 + "vw";
+      c.style.animationDelay = Math.random() * 0.6 + "s";
+      document.body.appendChild(c);
+      setTimeout(() => c.remove(), 2600);
+    }
+  }
+
+  document.getElementById("repeat").addEventListener("click", () => { if (target) ask(); });
+
+  // El primer toque es necesario para que el navegador permita la voz
+  document.getElementById("play").addEventListener("click", () => {
+    document.getElementById("start").remove();
+    newRound();
+  });
+</script>
+</body>
+</html>
