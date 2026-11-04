@@ -82,28 +82,6 @@
     #start .big { font-size: 70px; }
     #start .tip { font-size: 18px; color: #6b6470; margin-top: 18px; padding: 0 16px; }
     #start h1 { margin: 0 0 12px; }
-    .voices-label { font-size: 20px; color: #6b6470; margin: 4px 0 10px; }
-    .voices {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 10px;
-      padding: 0 16px 20px;
-      max-width: 520px;
-    }
-    #start .voice {
-      width: 92px;
-      margin: 0;
-      padding: 10px 4px;
-      font-size: 16px;
-      line-height: 1.2;
-      color: #2b2c34;
-      background: white;
-      border: 4px solid #e7ddd0;
-      border-radius: 18px;
-    }
-    #start .voice span { display: block; font-size: 40px; }
-    #start .voice.on { border-color: #ff8fab; background: #ffe5ec; }
 
     .confetti {
       position: fixed;
@@ -123,10 +101,8 @@
 <div id="start">
   <div class="big">🎨</div>
   <h1>¿Dónde está el color?</h1>
-  <p class="voices-label">Elige una voz (tócala para escucharla):</p>
-  <div class="voices" id="voices"></div>
   <button id="play">▶️ Jugar</button>
-  <p class="tip" id="tip">🔈 Sube el volumen del teléfono para oír la voz.</p>
+  <p class="tip" id="tip">🔈 Sube el volumen. En iPhone, ábrelo en Safari para oír la voz del teléfono.</p>
 </div>
 
 <div class="top">
@@ -153,66 +129,87 @@
     { name: "blanco", key: "blanco",   hex: "#ffffff" },
     { name: "marrón",   key: "marron",   hex: "#8b5a2b" },
   ];
-  // ---- Audio grabado (funciona aunque el navegador no tenga voz) ----
-  // Los archivos están en audio/. Si window.AUDIO_DATA existe, se usan esos datos incrustados.
+  // ---- Voz ----
+  // 1) Voz del propio dispositivo (en iPhone/iPad: la voz en español del sistema,
+  //    la más parecida a Siri que Safari permite usar).
+  // 2) Si el dispositivo no habla (algunas apps o navegadores no lo permiten),
+  //    se reproducen audios grabados de reserva que están en audio/amigo/.
   const player = new Audio();
   player.preload = "auto";
   let queue = [];
   let queueId = 0;
+  let deviceVoice = null;
+  let deviceWorks = null; // null = aún no se sabe, true / false después del primer intento
 
-  // 5 voces: cada una tiene sus audios en audio/<id>/
-  const VOICES = [
-    { id: "amigo",     label: "Amigo",     icon: "🙂" },
-    { id: "alegre",    label: "Alegre",    icon: "😄" },
-    { id: "ardillita", label: "Ardillita", icon: "🐿️" },
-    { id: "osito",     label: "Osito",     icon: "🧸" },
-    { id: "suave",     label: "Suave",     icon: "🌙" },
-  ];
-  let voice = "alegre";
-  try {
-    const saved = localStorage.getItem("colorGameVoice");
-    if (VOICES.some(v => v.id === saved)) voice = saved;
-  } catch (e) {}
-
-  function clipSrc(key) {
-    const embedded = window.AUDIO_DATA && window.AUDIO_DATA[voice] && window.AUDIO_DATA[voice][key];
-    return embedded || ("audio/" + voice + "/" + key + ".mp3");
+  function pickDeviceVoice() {
+    if (!("speechSynthesis" in window)) return;
+    const es = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang));
+    const score = v => {
+      const n = (v.name + " " + v.voiceURI).toLowerCase();
+      let s = 0;
+      if (n.includes("siri")) s += 100;
+      if (n.includes("premium")) s += 60;
+      if (n.includes("enhanced") || n.includes("mejorad")) s += 50;
+      if (/m[oó]nica|paulina|marisol|isabela|helena/.test(n)) s += 20;
+      if (/^es[-_](es|mx)/i.test(v.lang)) s += 10;
+      if (v.localService) s += 5;
+      if (/eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|albert|bells|bubbles|jester|organ|trinoids|whisper|zarvox|superstar|bahh|boing|cellos|wobble|bad news|good news|junior|ralph|fred|kathy/.test(n)) s -= 80;
+      return s;
+    };
+    es.sort((a, b) => score(b) - score(a));
+    deviceVoice = es[0] || null;
+  }
+  if ("speechSynthesis" in window) {
+    pickDeviceVoice();
+    speechSynthesis.onvoiceschanged = pickDeviceVoice;
   }
 
-  const voicesEl = document.getElementById("voices");
-  VOICES.forEach(v => {
-    const btn = document.createElement("button");
-    btn.className = "voice" + (v.id === voice ? " on" : "");
-    btn.id = "voice-" + v.id;
-    btn.setAttribute("aria-pressed", v.id === voice);
-    btn.innerHTML = "<span>" + v.icon + "</span>" + v.label;
-    btn.addEventListener("click", () => {
-      voice = v.id;
-      try { localStorage.setItem("colorGameVoice", voice); } catch (e) {}
-      [...voicesEl.children].forEach(b => {
-        const on = b === btn;
-        b.classList.toggle("on", on);
-        b.setAttribute("aria-pressed", on);
-      });
-      say(["hola"], "¡Hola! Vamos a jugar con los colores.");
-    });
-    voicesEl.appendChild(btn);
-  });
+  function clipSrc(key) {
+    const embedded = window.AUDIO_DATA && window.AUDIO_DATA.amigo && window.AUDIO_DATA.amigo[key];
+    return embedded || ("audio/amigo/" + key + ".mp3");
+  }
 
-  // Reproduce varios clips seguidos; si el audio falla, usa la voz del navegador.
-  function say(keys, fallbackText) {
-    const id = ++queueId;
+  function playClips(keys, id) {
     queue = keys.slice();
-    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     const next = () => {
       if (id !== queueId || !queue.length) return;
+      player.muted = false;
       player.src = clipSrc(queue.shift());
       const p = player.play();
-      if (p && p.catch) p.catch(() => { if (id === queueId) { queue = []; speak(fallbackText); } });
+      if (p && p.catch) p.catch(() => {});
     };
     player.onended = next;
-    player.onerror = () => { if (id === queueId) { queue = []; speak(fallbackText); } };
     next();
+  }
+
+  // Dice el texto con la voz del dispositivo; si no empieza a sonar, usa los audios grabados.
+  function say(keys, text) {
+    const id = ++queueId;
+    if (!player.muted) player.pause();
+    queue = [];
+    const canSpeak = "speechSynthesis" in window && deviceWorks !== false;
+    if (!canSpeak) { playClips(keys, id); return; }
+
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if (deviceVoice) { u.voice = deviceVoice; u.lang = deviceVoice.lang; } else { u.lang = "es-ES"; }
+    u.rate = 0.85;   // un poco lento para niños pequeños
+    u.pitch = 1.15;  // tono alegre
+    u.volume = 1;
+    let started = false;
+    u.onstart = () => { started = true; deviceWorks = true; };
+    u.onerror = e => {
+      if (e.error === "interrupted" || e.error === "canceled") return;
+      if (!started && id === queueId) { deviceWorks = false; playClips(keys, id); }
+    };
+    synth.resume();
+    synth.speak(u);
+    if (deviceWorks !== true) {
+      setTimeout(() => {
+        if (!started && id === queueId) { deviceWorks = false; synth.cancel(); playClips(keys, id); }
+      }, 1500);
+    }
   }
 
   const PRAISE = ["¡Muy bien!", "¡Bravo!", "¡Excelente!", "¡Sí, lo encontraste!", "¡Genial!"];
@@ -311,6 +308,12 @@
 
   // El primer toque es necesario para que el navegador permita la voz
   document.getElementById("play").addEventListener("click", () => {
+    // Desbloquea el audio de reserva dentro del toque (necesario en iPhone)
+    player.src = clipSrc("hola");
+    player.muted = true;
+    const p = player.play();
+    if (p && p.then) p.then(() => { if (player.muted) { player.pause(); player.muted = false; } }).catch(() => { player.muted = false; });
+    else player.muted = false;
     document.getElementById("start").remove();
     newRound();
   });
