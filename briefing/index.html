@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Informe Diario</title>
+  <meta name="description" content="Lo esencial de Colombia y el mundo, con indicadores económicos y comparación de enfoques entre medios.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <div>
+        <p class="eyebrow" id="fecha">—</p>
+        <h1>Informe Diario</h1>
+      </div>
+      <div class="top-actions">
+        <label class="sr-only" for="archivo">Ver otra fecha</label>
+        <select id="archivo" title="Ver otra fecha"></select>
+        <button id="tema" class="icon-btn" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg></button>
+      </div>
+    </div>
+    <nav class="wrap tabs" aria-label="Secciones">
+      <a href="#esencial">Lo esencial</a>
+      <a href="#indicadores">Indicadores</a>
+      <a href="#colombia">Colombia</a>
+      <a href="#mundo">Mundo</a>
+      <a href="#agenda">Agenda</a>
+    </nav>
+  </header>
+
+  <main class="wrap" id="app">
+    <p class="loading">Cargando informe…</p>
+  </main>
+
+  <footer class="wrap foot" id="pie"></footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

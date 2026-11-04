@@ -1,0 +1,21 @@
+{
+  "name": "informe-diario",
+  "version": "1.0.0",
+  "description": "Informe diario ejecutivo: Colombia, mundo e indicadores económicos",
+  "scripts": {
+    "generar": "node scripts/generate.mjs",
+    "generar:sin-ia": "node scripts/generate.mjs --sin-ia",
+    "servir": "python3 -m http.server 8080"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
+    "fast-xml-parser": "^5.12.0",
+    "zod": "^4.6.7"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  }
+}

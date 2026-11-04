@@ -1,0 +1,49 @@
+name: Informe diario
+
+on:
+  schedule:
+    # 5:43 a. m. hora de Bogotá (10:43 UTC), todos los días.
+    - cron: "43 10 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: informe-diario
+  cancel-in-progress: false
+
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: briefing
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: briefing/package-lock.json
+
+      - run: npm ci
+
+      - name: Generar informe
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/generate.mjs
+
+      - name: Publicar en el repositorio
+        run: |
+          git config user.name "informe-diario[bot]"
+          git config user.email "informe-diario@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "Sin cambios."
+          else
+            git commit -m "Informe diario $(TZ=America/Bogota date +%F)"
+            git push
+          fi
