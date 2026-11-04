@@ -43,7 +43,7 @@
       max-width: 220px;
       max-height: 220px;
       border-radius: 50%;
-      border: 6px solid white;
+      border: 6px solid #d9cfc1;
       box-shadow: 0 8px 0 rgba(0,0,0,0.15);
       cursor: pointer;
       transition: transform 0.15s, opacity 0.3s;
@@ -70,13 +70,18 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: safe center;
       align-items: center;
+      overflow-y: auto;
+      padding: 16px 0;
+      box-sizing: border-box;
       background: #fef6e4;
       z-index: 10;
     }
-    #start button { width: auto; padding: 30px 60px; font-size: 44px; }
-    #start .big { font-size: 90px; margin-bottom: 10px; }
+    #start button { width: auto; padding: 24px 56px; font-size: 40px; }
+    #start .big { font-size: 70px; }
+    #start .tip { font-size: 18px; color: #6b6470; margin-top: 18px; padding: 0 16px; }
+    #start h1 { margin: 0 0 12px; }
 
     .confetti {
       position: fixed;
@@ -97,6 +102,7 @@
   <div class="big">🎨</div>
   <h1>¿Dónde está el color?</h1>
   <button id="play">▶️ Jugar</button>
+  <p class="tip" id="tip">🔈 Sube el volumen. En iPhone, ábrelo en Safari para oír la voz del teléfono.</p>
 </div>
 
 <div class="top">
@@ -112,15 +118,100 @@
 <script>
   // Colores con nombre en español (artículo incluido para la pregunta)
   const COLORS = [
-    { name: "rojo",     hex: "#e63946" },
-    { name: "azul",     hex: "#1e6fd9" },
-    { name: "amarillo", hex: "#ffd60a" },
-    { name: "verde",    hex: "#2a9d3f" },
-    { name: "naranja",  hex: "#ff8c1a" },
-    { name: "morado",   hex: "#8e44ad" },
-    { name: "rosa",     hex: "#ff7eb6" },
-    { name: "negro",    hex: "#222222" },
+    { name: "rojo", key: "rojo",     hex: "#e63946" },
+    { name: "azul", key: "azul",     hex: "#1e6fd9" },
+    { name: "amarillo", key: "amarillo", hex: "#ffd60a" },
+    { name: "verde", key: "verde",    hex: "#2a9d3f" },
+    { name: "naranja", key: "naranja",  hex: "#ff8c1a" },
+    { name: "morado", key: "morado",   hex: "#8e44ad" },
+    { name: "rosa", key: "rosa",     hex: "#ff7eb6" },
+    { name: "negro", key: "negro",    hex: "#222222" },
+    { name: "blanco", key: "blanco",   hex: "#ffffff" },
+    { name: "marrón",   key: "marron",   hex: "#8b5a2b" },
   ];
+  // ---- Voz ----
+  // 1) Voz del propio dispositivo (en iPhone/iPad: la voz en español del sistema,
+  //    la más parecida a Siri que Safari permite usar).
+  // 2) Si el dispositivo no habla (algunas apps o navegadores no lo permiten),
+  //    se reproducen audios grabados de reserva que están en audio/amigo/.
+  const player = new Audio();
+  player.preload = "auto";
+  let queue = [];
+  let queueId = 0;
+  let deviceVoice = null;
+  let deviceWorks = null; // null = aún no se sabe, true / false después del primer intento
+
+  function pickDeviceVoice() {
+    if (!("speechSynthesis" in window)) return;
+    const es = speechSynthesis.getVoices().filter(v => /^es/i.test(v.lang));
+    const score = v => {
+      const n = (v.name + " " + v.voiceURI).toLowerCase();
+      let s = 0;
+      if (n.includes("siri")) s += 100;
+      if (n.includes("premium")) s += 60;
+      if (n.includes("enhanced") || n.includes("mejorad")) s += 50;
+      if (/m[oó]nica|paulina|marisol|isabela|helena/.test(n)) s += 20;
+      if (/^es[-_](es|mx)/i.test(v.lang)) s += 10;
+      if (v.localService) s += 5;
+      if (/eddy|flo|grandma|grandpa|reed|rocko|sandy|shelley|albert|bells|bubbles|jester|organ|trinoids|whisper|zarvox|superstar|bahh|boing|cellos|wobble|bad news|good news|junior|ralph|fred|kathy/.test(n)) s -= 80;
+      return s;
+    };
+    es.sort((a, b) => score(b) - score(a));
+    deviceVoice = es[0] || null;
+  }
+  if ("speechSynthesis" in window) {
+    pickDeviceVoice();
+    speechSynthesis.onvoiceschanged = pickDeviceVoice;
+  }
+
+  function clipSrc(key) {
+    const embedded = window.AUDIO_DATA && window.AUDIO_DATA.amigo && window.AUDIO_DATA.amigo[key];
+    return embedded || ("audio/amigo/" + key + ".mp3");
+  }
+
+  function playClips(keys, id) {
+    queue = keys.slice();
+    const next = () => {
+      if (id !== queueId || !queue.length) return;
+      player.muted = false;
+      player.src = clipSrc(queue.shift());
+      const p = player.play();
+      if (p && p.catch) p.catch(() => {});
+    };
+    player.onended = next;
+    next();
+  }
+
+  // Dice el texto con la voz del dispositivo; si no empieza a sonar, usa los audios grabados.
+  function say(keys, text) {
+    const id = ++queueId;
+    if (!player.muted) player.pause();
+    queue = [];
+    const canSpeak = "speechSynthesis" in window && deviceWorks !== false;
+    if (!canSpeak) { playClips(keys, id); return; }
+
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) synth.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    if (deviceVoice) { u.voice = deviceVoice; u.lang = deviceVoice.lang; } else { u.lang = "es-ES"; }
+    u.rate = 0.85;   // un poco lento para niños pequeños
+    u.pitch = 1.15;  // tono alegre
+    u.volume = 1;
+    let started = false;
+    u.onstart = () => { started = true; deviceWorks = true; };
+    u.onerror = e => {
+      if (e.error === "interrupted" || e.error === "canceled") return;
+      if (!started && id === queueId) { deviceWorks = false; playClips(keys, id); }
+    };
+    synth.resume();
+    synth.speak(u);
+    if (deviceWorks !== true) {
+      setTimeout(() => {
+        if (!started && id === queueId) { deviceWorks = false; synth.cancel(); playClips(keys, id); }
+      }, 1500);
+    }
+  }
+
   const PRAISE = ["¡Muy bien!", "¡Bravo!", "¡Excelente!", "¡Sí, lo encontraste!", "¡Genial!"];
   const PARTY = ["🎈", "⭐", "🎉", "🌈", "💖", "✨"];
 
@@ -142,18 +233,14 @@
     return a;
   }
 
-  // Empieza con 2 opciones; después de 5 aciertos sube a 3, y a los 12 a 4.
-  function optionCount() {
-    if (wins >= 12) return 4;
-    if (wins >= 5) return 3;
-    return 2;
-  }
+  // Siempre 4 colores diferentes en pantalla
+  const OPTIONS = 4;
 
   function ask() {
     const msg = "¿Dónde está el " + target.name + "?";
     question.textContent = msg;
     question.style.color = target.hex;
-    speak(msg);
+    say(["q_" + target.key], msg);
   }
 
   function newRound() {
@@ -162,7 +249,7 @@
     target = pool[Math.floor(Math.random() * pool.length)];
     lastTarget = target;
 
-    const others = shuffle(COLORS.filter(c => c !== target)).slice(0, optionCount() - 1);
+    const others = shuffle(COLORS.filter(c => c !== target)).slice(0, OPTIONS - 1);
     const options = shuffle([target, ...others]);
 
     board.innerHTML = "";
@@ -189,7 +276,8 @@
       [...board.children].forEach(b => { if (b !== ball) b.classList.add("fade"); });
       const praise = PRAISE[Math.floor(Math.random() * PRAISE.length)];
       question.textContent = praise;
-      speak(praise + " ¡" + capitalize(color.name) + "!");
+      const pi = PRAISE.indexOf(praise);
+      say(["p_" + pi, "c_" + color.key], praise + " ¡" + capitalize(color.name) + "!");
       celebrate();
       setTimeout(newRound, 2800);
     } else {
@@ -197,7 +285,8 @@
       ball.classList.remove("wiggle");
       void ball.offsetWidth; // reinicia la animación
       ball.classList.add("wiggle");
-      speak("Ese es " + color.name + ". ¿Dónde está el " + target.name + "?");
+      say(["ese_" + color.key, "q_" + target.key],
+          "Ese es " + color.name + ". ¿Dónde está el " + target.name + "?");
     }
   }
 
@@ -219,6 +308,12 @@
 
   // El primer toque es necesario para que el navegador permita la voz
   document.getElementById("play").addEventListener("click", () => {
+    // Desbloquea el audio de reserva dentro del toque (necesario en iPhone)
+    player.src = clipSrc("hola");
+    player.muted = true;
+    const p = player.play();
+    if (p && p.then) p.then(() => { if (player.muted) { player.pause(); player.muted = false; } }).catch(() => { player.muted = false; });
+    else player.muted = false;
     document.getElementById("start").remove();
     newRound();
   });
