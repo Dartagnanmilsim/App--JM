@@ -2,22 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>¿Dónde está la figura?</title>
+  <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
-
-<h2>🔺 Figuras</h2>
-
-<div class="grid">
-  <div class="item" onclick="speak('Círculo')">⭕</div>
-  <div class="item" onclick="speak('Cuadrado')">⬛</div>
-  <div class="item" onclick="speak('Triángulo')">🔺</div>
-  <div class="item" onclick="speak('Estrella')">⭐</div>
-  <div class="item" onclick="speak('Corazón')">❤️</div>
-  <div class="item" onclick="speak('Óvalo')">⬭</div>
-</div>
-
-<script src="voice.js"></script>
+<script src="js/games-data.js"></script>
+<script src="js/game.js"></script>
+<script>startGame("figuras");</script>
 </body>
 </html>

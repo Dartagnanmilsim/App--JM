@@ -2,26 +2,13 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>¿Dónde está el animal?</title>
+  <link rel="stylesheet" href="css/game.css">
 </head>
 <body>
-
-<h2>🐶 Animales</h2>
-
-<div class="grid">
-  <div class="item" onclick="speak('Perro, guau guau')">🐶</div>
-  <div class="item" onclick="speak('Gato, miau')">🐱</div>
-  <div class="item" onclick="speak('Vaca, muu')">🐮</div>
-  <div class="item" onclick="speak('Cerdo, oink')">🐷</div>
-  <div class="item" onclick="speak('Gallina, clo clo')">🐔</div>
-  <div class="item" onclick="speak('Caballo')">🐴</div>
-  <div class="item" onclick="speak('Oveja')">🐑</div>
-  <div class="item" onclick="speak('Elefante')">🐘</div>
-  <div class="item" onclick="speak('León')">🦁</div>
-  <div class="item" onclick="speak('Rana, croac')">🐸</div>
-</div>
-
-<script src="voice.js"></script>
+<script src="js/games-data.js"></script>
+<script src="js/game.js"></script>
+<script>startGame("animales");</script>
 </body>
 </html>
