@@ -70,14 +70,40 @@
       inset: 0;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: safe center;
       align-items: center;
+      overflow-y: auto;
+      padding: 16px 0;
+      box-sizing: border-box;
       background: #fef6e4;
       z-index: 10;
     }
-    #start button { width: auto; padding: 30px 60px; font-size: 44px; }
-    #start .big { font-size: 90px; margin-bottom: 10px; }
+    #start button { width: auto; padding: 24px 56px; font-size: 40px; }
+    #start .big { font-size: 70px; }
     #start .tip { font-size: 18px; color: #6b6470; margin-top: 18px; padding: 0 16px; }
+    #start h1 { margin: 0 0 12px; }
+    .voices-label { font-size: 20px; color: #6b6470; margin: 4px 0 10px; }
+    .voices {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      padding: 0 16px 20px;
+      max-width: 520px;
+    }
+    #start .voice {
+      width: 92px;
+      margin: 0;
+      padding: 10px 4px;
+      font-size: 16px;
+      line-height: 1.2;
+      color: #2b2c34;
+      background: white;
+      border: 4px solid #e7ddd0;
+      border-radius: 18px;
+    }
+    #start .voice span { display: block; font-size: 40px; }
+    #start .voice.on { border-color: #ff8fab; background: #ffe5ec; }
 
     .confetti {
       position: fixed;
@@ -97,6 +123,8 @@
 <div id="start">
   <div class="big">🎨</div>
   <h1>¿Dónde está el color?</h1>
+  <p class="voices-label">Elige una voz (tócala para escucharla):</p>
+  <div class="voices" id="voices"></div>
   <button id="play">▶️ Jugar</button>
   <p class="tip" id="tip">🔈 Sube el volumen del teléfono para oír la voz.</p>
 </div>
@@ -132,9 +160,44 @@
   let queue = [];
   let queueId = 0;
 
+  // 5 voces: cada una tiene sus audios en audio/<id>/
+  const VOICES = [
+    { id: "amigo",     label: "Amigo",     icon: "🙂" },
+    { id: "alegre",    label: "Alegre",    icon: "😄" },
+    { id: "ardillita", label: "Ardillita", icon: "🐿️" },
+    { id: "osito",     label: "Osito",     icon: "🧸" },
+    { id: "suave",     label: "Suave",     icon: "🌙" },
+  ];
+  let voice = "alegre";
+  try {
+    const saved = localStorage.getItem("colorGameVoice");
+    if (VOICES.some(v => v.id === saved)) voice = saved;
+  } catch (e) {}
+
   function clipSrc(key) {
-    return (window.AUDIO_DATA && window.AUDIO_DATA[key]) || ("audio/" + key + ".mp3");
+    const embedded = window.AUDIO_DATA && window.AUDIO_DATA[voice] && window.AUDIO_DATA[voice][key];
+    return embedded || ("audio/" + voice + "/" + key + ".mp3");
   }
+
+  const voicesEl = document.getElementById("voices");
+  VOICES.forEach(v => {
+    const btn = document.createElement("button");
+    btn.className = "voice" + (v.id === voice ? " on" : "");
+    btn.id = "voice-" + v.id;
+    btn.setAttribute("aria-pressed", v.id === voice);
+    btn.innerHTML = "<span>" + v.icon + "</span>" + v.label;
+    btn.addEventListener("click", () => {
+      voice = v.id;
+      try { localStorage.setItem("colorGameVoice", voice); } catch (e) {}
+      [...voicesEl.children].forEach(b => {
+        const on = b === btn;
+        b.classList.toggle("on", on);
+        b.setAttribute("aria-pressed", on);
+      });
+      say(["hola"], "¡Hola! Vamos a jugar con los colores.");
+    });
+    voicesEl.appendChild(btn);
+  });
 
   // Reproduce varios clips seguidos; si el audio falla, usa la voz del navegador.
   function say(keys, fallbackText) {
