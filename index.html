@@ -9,17 +9,13 @@
 <body>
 
 <h1>👶 Aprender Jugando</h1>
+<p class="sub">Elige un juego</p>
 
-<button onclick="go('animals.html')">🐶 Animales</button>
-<button onclick="go('colors.html')">🎨 Colores</button>
-<button onclick="go('shapes.html')">🔺 Figuras</button>
-<button onclick="go('color-game.html')">🎈 Juego de Colores</button>
-
-<script>
-function go(page) {
-  window.location.href = page;
-}
-</script>
+<nav class="menu">
+  <a class="game colores" href="color-game.html"><span>🎨</span>Colores</a>
+  <a class="game animales" href="animals.html"><span>🐶</span>Animales</a>
+  <a class="game figuras" href="shapes.html"><span>🔺</span>Figuras</a>
+</nav>
 
 </body>
 </html>
