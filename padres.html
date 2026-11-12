@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Para papás</title>
+  <link rel="stylesheet" href="css/padres.css?v=5">
+</head>
+<body>
+<main>
+  <a class="home" href="index.html">← Volver a los juegos</a>
+  <h1>👪 Para papás</h1>
+  <p class="lead">La app es una ayuda pequeña. Lo que más hace crecer el cerebro de un niño de 2 años es <b>jugar y conversar contigo</b>: tú le hablas, él responde (con palabras, gestos o señalando) y tú le contestas otra vez.</p>
+
+  <section>
+    <h2>Cómo usarla para que de verdad le ayude</h2>
+    <ul class="tips">
+      <li><b>Juega a su lado.</b> Siéntate con él, repite la palabra que dice la voz y señala junto a él. Los niños pequeños aprenden mucho más de una pantalla cuando un adulto participa.</li>
+      <li><b>Sesiones cortas.</b> 5 a 10 minutos bastan. La OMS recomienda que entre 2 y 4 años el tiempo de pantalla sea de una hora al día como máximo (menos es mejor). La app sugiere un descanso sola.</li>
+      <li><b>Pausa antes de ayudar.</b> Cuando busque, espera unos segundos en silencio. Pensar le cuesta y está bien que le cueste un poco.</li>
+      <li><b>Elogia el esfuerzo.</b> «Buscaste con calma», «miraste muy bien». Eso le enseña a no rendirse, más que «qué listo».</li>
+      <li><b>Sigue su interés.</b> Si hoy solo quiere animales, está bien. Si está cansado o frustrado, paren: aprender con presión no funciona a esta edad.</li>
+      <li><b>Llévalo al mundo real.</b> Cada juego tiene abajo una idea para jugar en casa. Eso fija lo aprendido mucho mejor que repetir en la pantalla.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Tiempo de juego</h2>
+    <p id="usage-today" class="big-number"></p>
+    <div id="usage-week" class="week" aria-label="Minutos por día, últimos 7 días"></div>
+  </section>
+
+  <section>
+    <h2>Progreso por juego</h2>
+    <p class="note">La dificultad se ajusta sola: empieza con 2 opciones y sube cuando acierta varias seguidas. Si se atasca, el correcto brilla para ayudarle.</p>
+    <div class="legend"><span class="chip ok">Lo domina</span><span class="chip learning">Aprendiendo</span><span class="chip new">Aún no practicado</span></div>
+    <div id="games"></div>
+  </section>
+
+  <section>
+    <h2>Qué esperar entre los 2 y los 3 años</h2>
+    <p class="note">Orientación general basada en los hitos del desarrollo de los CDC. Cada niño va a su ritmo.</p>
+    <ul class="milestones">
+      <li><b>Hacia los 2 años:</b> señala cosas o dibujos cuando se las nombras, junta dos palabras («más agua»), señala al menos dos partes del cuerpo.</li>
+      <li><b>Hacia los 2 años y medio:</b> dice unas 50 palabras, nombra cosas de un libro cuando le preguntas, juega a «hacer como si» (dar de comer a un muñeco).</li>
+      <li><b>Hacia los 3 años:</b> mantiene una pequeña conversación de ida y vuelta, pregunta «¿qué?» o «¿dónde?», imita lo que haces.</li>
+    </ul>
+    <p class="note">Si algo te preocupa, coméntalo con su pediatra. Esta app no sirve para evaluar ni diagnosticar.</p>
+  </section>
+
+  <section>
+    <h2>Ajustes</h2>
+    <label class="setting" for="minutes">Sugerir descanso después de
+      <select id="minutes">
+        <option value="5">5 minutos</option>
+        <option value="10">10 minutos</option>
+        <option value="15">15 minutos</option>
+      </select>
+    </label>
+    <div class="reset">
+      <button type="button" id="reset">Borrar el progreso</button>
+      <span id="reset-confirm" hidden>¿Seguro? <button type="button" id="reset-yes">Sí, borrar</button> <button type="button" id="reset-no">No</button></span>
+    </div>
+  </section>
+</main>
+
+<script src="js/games-data.js?v=5"></script>
+<script>
+(function () {
+  var KEY = "app_progress_v1";
+  function load() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    s = s || {}; s.games = s.games || {}; s.usage = s.usage || {}; s.settings = s.settings || { sessionMinutes: 10 };
+    return s;
+  }
+  function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  function dayKey(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  var store = load();
+
+  // Tiempo de juego
+  var now = new Date();
+  var todayMin = Math.round(store.usage[dayKey(now)] || 0);
+  document.getElementById("usage-today").textContent = "Hoy: " + todayMin + " min";
+  var week = document.getElementById("usage-week");
+  var days = ["D", "L", "M", "X", "J", "V", "S"];
+  for (var i = 6; i >= 0; i--) {
+    var d = new Date(now); d.setDate(now.getDate() - i);
+    var m = Math.round(store.usage[dayKey(d)] || 0);
+    var col = document.createElement("div");
+    col.className = "day";
+    col.innerHTML = '<span class="min">' + m + '</span><span class="bar" style="height:' + Math.min(100, m * 2) + 'px"></span><span class="lbl">' + days[d.getDay()] + "</span>";
+    week.appendChild(col);
+  }
+
+  // Progreso
+  var LEVELS = ["", "Fácil (2 opciones)", "Medio (3 opciones)", "Difícil (4 opciones)"];
+  var HIDE_LEVELS = ["", "Fácil (2 vasos)", "Medio (3 vasos)", "Difícil (3 vasos que se mueven)"];
+  var SIZE_LEVELS = ["", "Fácil (un dibujo, 2 tamaños)", "Difícil (dos dibujos y tamaños)", "Difícil (dos dibujos y tamaños)"];
+  var box = document.getElementById("games");
+  GAME_ORDER.forEach(function (id) {
+    var g = GAMES[id], st = store.games[id] || {};
+    var items = st.items || {};
+    var lv = st.level || 1;
+    var levelText = g.mode === "hide" ? HIDE_LEVELS[lv] : g.mode === "size" ? SIZE_LEVELS[lv] : LEVELS[lv];
+    var chips = g.items.map(function (it) {
+      var r = items[it.key];
+      var cls = !r || !r.tries ? "new" : (r.tries >= 3 && r.ok / r.tries >= 0.8 ? "ok" : "learning");
+      var label = (it.emoji ? it.emoji + " " : "") + it.name;
+      return '<span class="chip ' + cls + '"' + (it.hex ? ' style="--sw:' + it.hex + '"' : "") + ">" + (it.hex ? '<i class="sw"></i>' : "") + label + "</span>";
+    }).join("");
+    var card = document.createElement("article");
+    card.className = "game";
+    card.innerHTML =
+      "<h3>" + g.icon + " " + g.title + "</h3>" +
+      '<p class="skill">🧠 ' + g.skill + "</p>" +
+      '<p class="meta">Nivel: <b>' + levelText + "</b> · ⭐ " + (st.stars || 0) + "</p>" +
+      '<div class="chips">' + chips + "</div>" +
+      '<p class="why">' + g.why + "</p>" +
+      '<p class="home-idea"><b>🏡 En casa:</b> ' + g.home + "</p>";
+    box.appendChild(card);
+  });
+
+  // Ajustes
+  var sel = document.getElementById("minutes");
+  sel.value = String(store.settings.sessionMinutes || 10);
+  sel.addEventListener("change", function () { store.settings.sessionMinutes = parseInt(sel.value, 10); save(store); });
+  var resetBtn = document.getElementById("reset"), confirmBox = document.getElementById("reset-confirm");
+  resetBtn.addEventListener("click", function () { confirmBox.hidden = false; resetBtn.hidden = true; });
+  document.getElementById("reset-no").addEventListener("click", function () { confirmBox.hidden = true; resetBtn.hidden = false; });
+  document.getElementById("reset-yes").addEventListener("click", function () {
+    var settings = store.settings;
+    try {
+      localStorage.removeItem(KEY);
+      GAME_ORDER.forEach(function (id) { localStorage.removeItem("stars_" + id); });
+    } catch (e) {}
+    save({ games: {}, usage: {}, settings: settings });
+    location.reload();
+  });
+})();
+</script>
+</body>
+</html>
