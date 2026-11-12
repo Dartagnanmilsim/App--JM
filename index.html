@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Aprender Jugando</title>
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -19,11 +19,11 @@
 </header>
 
 <main class="menu">
-
   <a class="module colores" href="color-game.html" data-say="¡Colores!" data-game="colores">
     <div class="icon">🎨</div>
     <div class="info">
       <h2>Colores</h2>
+      <span class="skill">🗣️ Lenguaje</span>
       <div class="preview">
         <i style="background:#e63946"></i><i style="background:#1e6fd9"></i>
         <i style="background:#ffd60a"></i><i style="background:#2a9d3f"></i>
@@ -31,22 +31,20 @@
       <div class="meta"><span class="go">▶ Jugar</span><span class="stars" data-stars></span></div>
     </div>
   </a>
-
   <a class="module animales" href="animals.html" data-say="¡Animales!" data-game="animales">
     <div class="icon">🐶</div>
     <div class="info">
       <h2>Animales</h2>
+      <span class="skill">🗣️ Lenguaje</span>
       <div class="preview emojis"><b>🐱</b><b>🐮</b><b>🐷</b><b>🦁</b></div>
       <div class="meta"><span class="go">▶ Jugar</span><span class="stars" data-stars></span></div>
     </div>
   </a>
-
   <a class="module figuras" href="shapes.html" data-say="¡Figuras!" data-game="figuras">
-    <div class="icon">
-      <svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 94,90 6,90" fill="#e63946"/></svg>
-    </div>
+    <div class="icon"><svg viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,8 94,90 6,90" fill="#e63946"/></svg></div>
     <div class="info">
       <h2>Figuras</h2>
+      <span class="skill">👀 Percepción</span>
       <div class="preview shapes">
         <svg viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="44" fill="#1e6fd9"/></svg>
         <svg viewBox="0 0 100 100" aria-hidden="true"><rect x="10" y="10" width="80" height="80" rx="4" fill="#2a9d3f"/></svg>
@@ -56,8 +54,36 @@
       <div class="meta"><span class="go">▶ Jugar</span><span class="stars" data-stars></span></div>
     </div>
   </a>
-
+  <a class="module iguales" href="match.html" data-say="¡Iguales!" data-game="iguales">
+    <div class="icon">🧩</div>
+    <div class="info">
+      <h2>Iguales</h2>
+      <span class="skill">🔍 Atención</span>
+      <div class="preview emojis"><b>🐶</b><b class="eq">=</b><b>🐶</b></div>
+      <div class="meta"><span class="go">▶ Jugar</span><span class="stars" data-stars></span></div>
+    </div>
+  </a>
+  <a class="module escondite" href="hide.html" data-say="¡Escondite!" data-game="escondite">
+    <div class="icon">🙈</div>
+    <div class="info">
+      <h2>Escondite</h2>
+      <span class="skill">🧠 Memoria</span>
+      <div class="preview cups-prev"><b class="c1"></b><b class="c2"></b><b class="c3"></b></div>
+      <div class="meta"><span class="go">▶ Jugar</span><span class="stars" data-stars></span></div>
+    </div>
+  </a>
+  <a class="module tamanos" href="size.html" data-say="¡Grande y pequeño!" data-game="tamanos">
+    <div class="icon">🐘</div>
+    <div class="info">
+      <h2>Grande y pequeño</h2>
+      <span class="skill">📏 Conceptos</span>
+      <div class="preview emojis sizes-prev"><b class="lg">🐻</b><b class="sm">🐻</b></div>
+      <div class="meta"><span class="go">▶ Jugar</span><span class="stars" data-stars></span></div>
+    </div>
+  </a>
 </main>
+
+<a class="parents" href="padres.html">👪 Para papás: progreso y consejos</a>
 
 <script>
   // Voz del dispositivo para decir el nombre del juego al tocarlo
